@@ -70,7 +70,6 @@ app.use("/token", bodyParser.urlencoded({ extended: false }));
 app.use("/token", app.oauth.token());
 
 app.use("/resource", (req, res) => {
-    console.log("qui?")
     res.send('Ok!')
 })
 

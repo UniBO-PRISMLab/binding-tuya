@@ -22,7 +22,7 @@ import * as https from "https";
 
 import { Subscription } from "rxjs/Subscription";
 
-import * as TD from "@node-wot/td-tools";
+import * as TD from "../../td-tools/src/td-tools";
 // for Security definition
 import * as WoT from "wot-typescript-definitions";
 
@@ -32,7 +32,7 @@ import fetch, { Request, RequestInit, Response } from 'node-fetch';
 import { Buffer } from "buffer";
 import OAuthManager from "./oauth-manager";
 import { parse } from "url";
-import { BasicCredential, Credential, BearerCredential, BasicKeyCredential, OAuthCredential } from "./credential";
+import { BasicCredential, Credential, BearerCredential, BasicKeyCredential, OAuthCredential, TuyaCredential } from "./credential";
 import { LongPollingSubscription, SSESubscription, InternalSubscription } from "./subscription-protocols";
 
 export default class HttpClient implements ProtocolClient {
@@ -216,6 +216,10 @@ export default class HttpClient implements ProtocolClient {
 
         break;
       case "nosec":
+        break;
+      case "TuyaCredential":
+        let scheme: TD.TuyaCredentialSecurityScheme = <TD.TuyaCredentialSecurityScheme>security;  
+        this.credential = new TuyaCredential(scheme);
         break;
       default:
         console.error("[binding-http]",`HttpClient cannot set security scheme '${security.scheme}'`);

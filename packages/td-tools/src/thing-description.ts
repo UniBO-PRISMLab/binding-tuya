@@ -259,6 +259,13 @@ export interface OAuth2SecurityScheme extends SecurityScheme {
   scopes?: Array<string>;
 }
 
+export interface TuyaCredentialSecurityScheme extends SecurityScheme{
+  scheme: "TuyaCredential";
+  key:string;
+  secret:string;
+  region:'us'|'eu'|'cn'|'in';
+}
+
 
 /** Implements the Thing Property description */
 export abstract class ThingProperty extends BaseSchema implements  ThingInteraction {

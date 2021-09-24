@@ -43,10 +43,13 @@
     "@node-wot/td-tools": "0.7.7",
     "@types/eventsource": "^1.1.2",
     "accept-language-parser": "1.5.0",
+    "axios": "^0.21.1",
     "basic-auth": "2.0.1",
     "client-oauth2": "^4.2.5",
+    "crypto": "^1.0.1",
     "eventsource": "^1.0.7",
     "node-fetch": "^2.6.0",
+    "query-string": "^7.0.1",
     "rxjs": "5.5.11",
     "slugify": "^1.4.5"
   },

@@ -11,12 +11,13 @@
  * https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document.
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
- ********************************************************************************/
+  ********************************************************************************/
 
-import { APIKeySecurityScheme } from "@node-wot/td-tools";
-import { Token, CredentialsFlow } from "client-oauth2";
-import { Request} from 'node-fetch';
-
+import { APIKeySecurityScheme, TuyaCredentialSecurityScheme } from "../../td-tools/src/td-tools";
+import { Token } from "client-oauth2";
+import fetch, {Request} from 'node-fetch';
+import * as crypto from 'crypto';
+import * as queryString from 'query-string';
 
 export abstract class Credential{
     abstract async sign(request:Request):Promise<Request>
@@ -132,5 +133,103 @@ export class OAuthCredential extends Credential {
             newToken = await this.token.refresh()
         }
         return new OAuthCredential(newToken,this.refresh)
+    }
+}
+
+
+export class TuyaCredential extends Credential {
+
+    private key:string;
+    private secret:string;
+    private region:string;
+    private token:string;
+    private refresh_Token:string;
+    private expireTime:Date;
+
+
+
+    constructor(scheme: TuyaCredentialSecurityScheme){
+        super();
+        this.key = scheme.key;
+        this.secret = scheme.secret;
+        this.region = scheme.region;
+    }
+    async sign(request: Request): Promise<any> {
+
+        const isTokenExpired:boolean = this.isTokenExpired();
+        if(this.token == undefined || this.token == '' || isTokenExpired){
+            await this.requestAndRefreshToken(isTokenExpired);
+        }
+        let url = (request as any)[Object.getOwnPropertySymbols(request)[1]].parsedURL.href;
+        let body = request.body != null ? request.body.toString() : null;
+        let headers = this.getHeaders(true,request.headers.raw(),body,url,request.method);
+        Object.assign(headers, request.headers.raw());
+        return new Request(url,{method:request.method,body:body, headers:headers});
+    }
+
+    private async requestAndRefreshToken(refresh:boolean){
+        let headers = this.getHeaders(false, {},null,null,null);
+        const request = {
+            headers:headers,
+            method:'GET'
+        };
+        let url = `https://openapi.tuya${this.region}.com/v1.0/token?grant_type=1`;
+        if(refresh){
+            url = `https://openapi.tuya${this.region}.com/v1.0/token/${this.refresh_Token}`;
+        }
+        let data = await (await fetch(url, request)).json();
+        if(data.success){
+            this.token = data.result.access_token;
+            this.refresh_Token = data.result.refresh_token;
+            this.expireTime = new Date(Date.now() + (data.result.expire_time * 1000));
+        }else{
+            throw new Error("token fetch failed");
+            
+        }
+    }
+
+
+    private getHeaders(NormalRequest:boolean, headers:any, body:any, url:string, method:string){
+        let requestTime = Date.now().toString();
+        const _url = url != null ? url.replace(`https://openapi.tuya${this.region}.com`,'') : null;
+        const sign = this.requestSign(NormalRequest, requestTime, body, headers, _url, method);
+        return {
+            t:requestTime,
+            'client_id': this.key,
+            sign_method:"HMAC-SHA256",
+            sign,
+            access_token: this.token || ''
+        }
+    }
+    
+    private requestSign(NormalRequest:boolean, requestTime:string, body:any, headers: any, path:string, method:string){
+        const bodyHash = crypto.createHash('sha256').update(body != null ? body : '').digest('hex');
+        let signUrl:string = "/v1.0/token?grant_type=1";;
+        const headersKeys = Object.keys(headers);
+        let headerString = '';
+        const useToken = NormalRequest ? this.token : '';
+        const _method = method != null ? method : 'GET';
+        if(NormalRequest){
+            const pathQuery = queryString.parse(path.split('?')[1]);
+            let query:any = {}
+            query = Object.assign(query, pathQuery);
+            let sortedQuery:{[k:string] : string} = {};
+            Object.keys(query).sort().forEach(i => sortedQuery[i] = query[i]);
+            const qs = queryString.stringify(sortedQuery)
+            signUrl = decodeURIComponent(qs?`${path.split('?')[0]}?${qs}`:path);
+        }
+        const endStr = [this.key, useToken, requestTime, [_method, bodyHash, headerString, signUrl].join('\n')].join('');
+        let sign = crypto
+            .createHmac('sha256', this.secret)
+            .update(endStr)
+            .digest('hex')
+            .toUpperCase();
+        return sign;
+    }
+    private isTokenExpired(): boolean {
+        if(this.expireTime != null){
+            return Date.now() > this.expireTime.getTime();
+        }
+        return false;
     }
 }

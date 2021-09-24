@@ -13,7 +13,12 @@
     "lerna-run": "0.0.2",
     "rimraf": "3.0.2"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@node-wot/core": "^0.7.8",
+    "@node-wot/td-tools": "^0.7.8",
+    "node-fetch": "^2.6.0",
+    "wot-typescript-definitions": "^0.8.0-SNAPSHOT.18"
+  },
   "scripts": {
     "bootstrap": "lerna bootstrap --no-ci",
     "prebuild": "npm run bootstrap",
