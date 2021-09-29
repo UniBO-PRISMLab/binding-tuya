@@ -1,0 +1,210 @@
+{
+    "title":"Tuya-smart-bulb",
+    "description":"an exemple TD of a real tuya smart rgb bulb. The id and region field are needed for connections porpouses",
+    "id":"tuya-bulb-id",
+    "@context":["https://www.w3.org/2019/wot/td/v1"],
+    "region":"eu",
+    "properties":{
+        "switch_led":{
+            "type":"boolean",
+            "description":"True if the bulb is on, false otherways"
+        },
+        "work_mode":{
+            "type":"string",
+            "enum":["white","colour","scene","music"],
+            "description":"The type of the bulb current working state:\nwhite for only white color,\ncolour for hsv custom value,\nscene for custom scene value,\nmusic for color changing on music value"
+        },
+        "bright_value_v2":{
+          "type":"integer",
+          "minimum":0,
+          "maximum":1000,
+          "description":"The brightness of the bulb"
+        },
+        "temp_value_v2":{
+            "type":"integer",
+            "minimum":0,
+            "maximum":1000,
+            "description":"The color temperature of the bulb"
+        },
+        "colour_data_v2":{
+          "type":"object",
+            "properties":{
+                "h":{
+                    "type":"integer",
+                    "minimum":0,
+                    "maximum":360,
+                    "description":"h value of hsv color"
+                },
+                "s":{
+                    "type":"integer",
+                    "minimum":0,
+                    "maximum":1000,
+                    "description":"s value of hsv color"
+                },
+                "v":{
+                    "type":"integer",
+                    "minimum":0,
+                    "maximum":1000,
+                    "description":"v value of hsv color"
+                }
+            },
+            "description":"The color of the bulb, visible only in colour mode. The value is expressed in hsv values"
+        },
+        "scene_data_v2":{
+            "type":"object",
+            "properties":{
+                "scene_num":{
+                    "type":"integer",
+                    "minimum":0,
+                    "maximum":8,
+                    "description":"The unit value of the scene"
+                },
+                "scene_units":{
+                    "type":"object",
+                    "properties":{
+                        "unit_change_mode":{
+                            "type":"string",
+                            "enum":["static","jump","gradient"],
+                            "description":"The type of transition between scenes"
+                        },
+                        "unit_switch_duration":{
+                            "type":"integer",
+                            "minimum":0,
+                            "maximum":100,
+                            "description":"The duration of the transition between scenes"
+                        },
+                        "unit_gradient_duration":{
+                            "type":"integer",
+                            "minimum":0,
+                            "maximum":100,
+                            "description":"The duration of the gradient"
+                        },
+                        "bright":{
+                            "type":"integer",
+                            "minimum":0,
+                            "maximum":1000,
+                            "description":"The brightness of the bulb"
+                        },
+                        "temperature":{
+                            "type":"integer",
+                            "minimum":0,
+                            "maximum":1000,
+                            "description":"The temperature of the bulb"
+                        },
+                        "h":{
+                            "type":"integer",
+                            "minimum":0,
+                            "maximum":360,
+                            "description":"h value of hsv color"
+                        },
+                        "s":{
+                            "type":"integer",
+                            "minimum":0,
+                            "maximum":1000,
+                            "description":"s value of hsv color"
+                        },
+                        "v":{
+                            "type":"integer",
+                            "minimum":0,
+                            "maximum":1000,
+                            "description":"v value of hsv color"
+                        }
+                    },
+                    "description":"the values of the scenes of the bulb"
+                }
+            },
+            "description":"the scene value of the bulb"
+        },
+        "countdown_1":{
+            "type":"integer",
+            "minimum":0,
+            "maximum":86400,
+            "description":"Countdown duration before switch off of the bulb"
+        },
+        "music_data":{
+            "type":"object",
+            "properties":{
+                "change_mode":{
+                    "type":"string",
+                    "enum":["direct","gradient"],
+                    "description":"Type of transition of the mode"
+                },
+                "bright":{
+                    "type":"integer",
+                    "minimum":0,
+                    "maximum":1000,
+                    "description":"The brightness of the bulb"
+                },
+                "temperature":{
+                    "type":"integer",
+                    "minimum":0,
+                    "maximum":1000,
+                    "description":"The temperature of the bulb"
+                },
+                "h":{
+                    "type":"integer",
+                    "minimum":0,
+                    "maximum":360,
+                    "description":"h value of hsv color"
+                },
+                "s":{
+                    "type":"integer",
+                    "minimum":0,
+                    "maximum":255,
+                    "description":"s value of hsv color"
+                },
+                "v":{
+                    "type":"integer",
+                    "minimum":0,
+                    "maximum":255,
+                    "description":"v value of hsv color"
+                }
+            },
+            "description":"The values used by the bulb for the music mode"
+        },
+        "control_data":{
+            "type":"object",
+            "properties":{
+                "change_mode":{
+                    "type":"string",
+                    "enum":["direct","gradient"],
+                    "description":"Type of transition of the mode"
+                },
+                "bright":{
+                    "type":"integer",
+                    "minimum":0,
+                    "maximum":1000,
+                    "description":"The brightness of the bulb"
+                },
+                "temperature":{
+                    "type":"integer",
+                    "minimum":0,
+                    "maximum":1000,
+                    "description":"The temperature of the bulb"
+                },
+                "h":{
+                    "type":"integer",
+                    "minimum":0,
+                    "maximum":360,
+                    "description":"h value of hsv color"
+                },
+                "s":{
+                    "type":"integer",
+                    "minimum":0,
+                    "maximum":255,
+                    "description":"s value of hsv color"
+                },
+                "v":{
+                    "type":"integer",
+                    "minimum":0,
+                    "maximum":255,
+                    "description":"v value of hsv color"
+                }
+            },
+            "description":"control values of the bulb"
+        }
+    },
+    "actions":{
+
+    }
+}

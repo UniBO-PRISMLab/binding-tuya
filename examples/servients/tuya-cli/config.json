@@ -1,0 +1,15 @@
+{
+    "servient": {
+        "clientOnly": false,
+        "scriptAction": false
+    },
+    "http": {
+        "port": 8080,
+        "selfSigned": false
+    },
+    "tuya":{
+        "key":"key da tuya",
+        "secret":"secret da tuya",
+        "region":"eu"
+    }
+}

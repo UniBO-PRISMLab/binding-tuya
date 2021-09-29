@@ -25,7 +25,7 @@ const argv = process.argv.slice(2); // remove "node" and executable
 const defaultFile = "wot-servient.conf.json";
 const baseDir = ".";
 
-var clientOnly: boolean = true;
+var clientOnly: boolean = false;
 
 var flagArgConfigfile = false;
 var confFile: string;
@@ -143,6 +143,11 @@ wot-servient.conf.json syntax:
         "clientId" : "UNIQUEID",
         "port": 1883 
     },
+    "tuya":{
+        "secret":"SECRET_KEY_FROM_TUYA_CLOUD_PROJECT",
+        "key":"KEY_FROM_TUYA_CLOUD_PROJECT",
+        "region":"eu / us / cn / in"
+    },
     "credentials": {
         THING_ID1: {
             "token": TOKEN
@@ -178,6 +183,7 @@ wot-servient.conf.json fields:
 
 readConf(confFile)
     .then((conf) => {
+        console.log(clientOnly, conf)
         return new TuyaServient(clientOnly, conf);
     })
     .catch((err) => {
