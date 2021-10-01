@@ -34,7 +34,7 @@
     "vm2": "^3.9.3"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && cp TD.json dist/examples/servients/tuya-cli/src",
     "start": "ts-node src/tuya-cli.ts"
   }
 }
