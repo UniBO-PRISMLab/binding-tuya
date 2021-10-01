@@ -20,6 +20,7 @@ import TuyaServient from "./cli-tuya-servient";
 // tools
 import fs = require("fs");
 import * as path from "path";
+import Servient from "@node-wot/core";
 
 const argv = process.argv.slice(2); // remove "node" and executable
 const defaultFile = "wot-servient.conf.json";

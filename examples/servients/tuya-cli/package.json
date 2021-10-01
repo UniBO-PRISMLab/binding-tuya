@@ -1,5 +1,5 @@
 {
-  "name": "@node-wot/opcua-cli",
+  "name": "@node-wot/tuya-cli",
   "version": "0.7.7",
   "description": "servient command line interface",
   "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
@@ -24,18 +24,17 @@
     "wot-typescript-definitions": "0.7.3"
   },
   "dependencies": {
-    "@node-wot/binding-file": "^0.7.6",
     "@node-wot/binding-http": "^0.7.6",
-    "@node-wot/binding-opcua": "^0.7.6",
     "@types/node-fetch": "^2.5.10",
     "fs": "0.0.1-security",
     "path": "^0.12.7",
     "query-string": "^7.0.1",
     "querystring": "^0.2.1",
+    "rxjs": "5.5.11",
     "vm2": "^3.9.3"
   },
   "scripts": {
     "build": "tsc",
-    "start": "ts-node src/opcua-cli.ts"
+    "start": "ts-node src/tuya-cli.ts"
   }
 }
