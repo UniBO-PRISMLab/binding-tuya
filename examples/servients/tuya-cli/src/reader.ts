@@ -7,7 +7,7 @@ const servient = new Servient();
 servient.addClientFactory(new HttpClientFactory());
 const WoTHelpers = new Helpers(servient);
 
-WoTHelpers.fetch("http://192.168.1.250:8080/tuya-smart-bulb").then(async (td) => {
+WoTHelpers.fetch("http://127.0.0.1:8080/tuya-smart-bulb").then(async (td) => {
     try {
         servient.start().then(async (WoT) => {
             // Then from here on you can consume the thing
