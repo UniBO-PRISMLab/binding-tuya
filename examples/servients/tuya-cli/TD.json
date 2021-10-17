@@ -1,9 +1,16 @@
 {
-    "title":"Tuya-smart-bulb",
+    "title":"bff89e2b5a8e1516d6l89a",
     "description":"an exemple TD of a real tuya smart rgb bulb. The id and region field are needed for connections porpouses",
-    "id":"tuya-bulb-id",
+    "id":"bff89e2b5a8e1516d6l89a",
     "@context":["https://www.w3.org/2019/wot/td/v1"],
-    "region":"eu",
+    "securityDefinitions": {
+        "TuyaCredential": {
+            "scheme": "TuyaCredential"
+        }
+    },
+    "security": [
+        "TuyaCredential"
+    ],
     "properties":{
         "switch_led":{
             "type":"boolean",

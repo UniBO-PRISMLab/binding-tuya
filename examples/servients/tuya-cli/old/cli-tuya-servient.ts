@@ -13,15 +13,18 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import * as WoT from "wot-typescript-definitions";
-import { Servient, Helpers } from "../../../../packages/core/src/core";
-import { HttpClientFactory } from "../../../../packages/binding-http/src/http";
-import  TuyaServer  from "../../../../packages/binding-tuya/src/tuya-Server";
+// global W3C WoT Scripting API definitions
+
+import { TuyaServient } from '../../../../packages/binding-tuya/src/tuya-servient';
+import { TuyaCredentialSecurityScheme } from "../../../../packages/td-tools/src/thing-description";
+import { TuyaCredential } from '../../../../packages/binding-http/src/credential';
+import { HttpServer } from '@node-wot/binding-http';
+import { HttpClientFactory } from '@node-wot/binding-http';
 import * as fs from 'fs';
 
 
 //estendo il servient per configurarlo come necessario
-export default class tuyaServient extends Servient{
+export default class tuyaServient extends TuyaServient{
     private static readonly defaultConfig = {
         servient: {
             clientOnly: false,
@@ -53,6 +56,18 @@ export default class tuyaServient extends Servient{
         this.addCredentials(this.config.credentials);
         // remove secrets from original for displaying config (already added)
         if(this.config.credentials) delete this.config.credentials;
+        if(!this.config.tuya) throw("add tuya credentials");
+        let secret = this.config.tuya.secret;
+        let key = this.config.tuya.key;
+        let region = this.config.tuya.region;
+        let scheme: TuyaCredentialSecurityScheme = {
+            scheme:'TuyaCredential',
+            key: key,
+            secret: secret,
+            region: region
+        };
+
+        super.setSecurity(new TuyaCredential(scheme));
 
         // display
         console.info("TuyaServient configured with");
@@ -65,27 +80,24 @@ export default class tuyaServient extends Servient{
         if (!this.config.servient.clientOnly) {
 
             if (this.config.http !== undefined) {
-                let tuyaServer = new TuyaServer(this.config.http);
-                this.addServer(tuyaServer as any);
+                let httpServer = new HttpServer(this.config.http);
+                this.addServer(httpServer);
             }
         }
         this.addClientFactory(new HttpClientFactory());
     }
 
     //sovrascritta la start per esporre la thing direttamente senza doverlo fare da un altro script
-    public start(): Promise<WoT.WoT> {
-        return new Promise<WoT.WoT>((resolve, reject) => {
-            super.start().then((myWoT: WoT.WoT) => {
-                console.info("DefaultServient started");
-                let TD = JSON.parse(fs.readFileSync(__dirname + '/TD.json').toString());
-                myWoT.produce(TD)
-                    .then((thing) => {
-                        thing.expose().then(() => {
-                            // pass on WoTFactory
-                            resolve(myWoT);
-                        }).catch((err) => {console.log("err thing " + err); reject(err)});
-                    });
-                }).catch((err:any) => {console.log("err wot " + err); reject(err)});
-        });
-    }    
+    start(){
+        let server = super.start();
+        server.then(( WoT )=>{
+            let TD = JSON.parse(fs.readFileSync(__dirname + '/TD.json').toString());
+            WoT.produce(TD).then((thing) => {
+                thing.expose().then(()=>{
+                    console.log("thing exposed!");
+                })
+            });
+        })
+        return server;
+    }
 }
