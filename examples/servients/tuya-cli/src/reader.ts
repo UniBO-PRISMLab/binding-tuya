@@ -13,8 +13,8 @@ servient.addClientFactory( new HttpClientFactory());
 servient.addCredentials({
     "bff89e2b5a8e1516d6l89a":{
         "scheme":"TuyaCredential",
-        "key":"geuntsnaarzshct0hsuh",
-        "secret":"b25914ccbaa34f1fa18351112b20a00c",
+        "key":"key",
+        "secret":"secret",
         "region":"eu"
     }
 })
