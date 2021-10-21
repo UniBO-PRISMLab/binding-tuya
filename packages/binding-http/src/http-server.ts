@@ -27,7 +27,7 @@ import { AddressInfo } from "net";
 
 import * as TD from "@node-wot/td-tools";
 import Servient, { ProtocolServer, ContentSerdes, Helpers, ExposedThing, ProtocolHelpers } from "@node-wot/core";
-import { HttpConfig, HttpForm, OAuth2ServerConfig } from "./http";
+import { HttpConfig, HttpForm, OAuth2ServerConfig, tuyaForm } from "./http";
 import createValidator, { Validator } from "./oauth-token-validation";
 import { OAuth2SecurityScheme } from "@node-wot/td-tools";
 
@@ -210,7 +210,7 @@ export default class HttpServer implements ProtocolServer {
       this.things.set(urlPath, thing);
 
       if (this.baseUri !== undefined) {
-        let base: string = this.baseUri.concat("/", encodeURIComponent(urlPath))
+        let base: string = this.baseUri.includes("openapi.tuya") ? this.baseUri + "/" + thing.title : this.baseUri.concat("/", encodeURIComponent(urlPath))
         console.info("[binding-http]", "HttpServer TD hrefs using baseUri " + this.baseUri)
         this.addEndpoint(thing, tdTemplate, base )
       } else {
@@ -283,29 +283,71 @@ export default class HttpServer implements ProtocolServer {
           thing.forms.push(form);
         }
 
+        let isTuyaThing:boolean = base.includes("openapi.tuya");
+
         for (let propertyName in thing.properties) {
           let propertyNamePattern = this.updateInteractionNameWithUriVariablePattern(propertyName, thing.properties[propertyName].uriVariables);
           let href = base + "/" + this.PROPERTY_DIR + "/" + propertyNamePattern;
           let form = new TD.Form(href, type);
           ProtocolHelpers.updatePropertyFormWithTemplate(form, tdTemplate, propertyName);
-          if (thing.properties[propertyName].readOnly) {
+          
+
+          //the tuya thing needs fixed endpoints and they're different for read and write 
+          if(isTuyaThing){
+
+            let readForm:tuyaForm = new TD.Form(base + "/status",type);
+            readForm.op = ["readproperty"];
+            readForm["htv:methodName"] =  "GET";
+            readForm.propertyName = propertyName;
+
+            thing.properties[propertyName].forms.push(readForm);
+            
+            form = new TD.Form(base + "/commands",type);
+            form.op = ["writeproperty"];
+            (form as HttpForm)["htv:methodName"] = "POST";
+            (form as tuyaForm).propertyName = propertyName;
+
+          }else if (thing.properties[propertyName].readOnly) {
             form.op = ["readproperty"];
             let hform : HttpForm = form;
             if(hform["htv:methodName"] === undefined) {
               hform["htv:methodName"] = "GET";
             }
+            console.debug("[binding-http]",`HttpServer on port ${this.getPort()} assigns '${href}' to Property '${propertyName}'`);
+
           } else if (thing.properties[propertyName].writeOnly) {
             form.op = ["writeproperty"];
             let hform : HttpForm = form;
             if(hform["htv:methodName"] === undefined) {
               hform["htv:methodName"] = "PUT";
             }
+            console.debug("[binding-http]",`HttpServer on port ${this.getPort()} assigns '${href}' to Property '${propertyName}'`);
+
+          //added the possibility to have different endpoints for read and write
+          }else if(thing.properties[propertyName].endpoints){
+
+            let readForm = new TD.Form(href + thing.properties.endpoints.read.code,type);
+            readForm.op = ["readproperty"];
+            (readForm as HttpForm)["htv:methodName"] = thing.properties.endpoints.read.method ? thing.properties.endpoints.read.method : "GET";
+
+            thing.properties[propertyName].forms.push(readForm);
+            
+            form = new TD.Form(href + thing.properties.endpoints.write.code,type);
+            form.op = ["writeproperty"];
+            (form as HttpForm)["htv:methodName"] = thing.properties.endpoints.read.method ? thing.properties.endpoints.read.method : "PUT";
+
+            console.debug("[binding-http]",`HttpServer on port ${this.getPort()} assigns '${href + thing.properties.endpoints.read.code}' to Property '${propertyName}' (read)`);
+            console.debug("[binding-http]",`HttpServer on port ${this.getPort()} assigns '${href + thing.properties.endpoints.write.code}' to Property '${propertyName}' (write)`);
+
+
+
           } else {
             form.op = ["readproperty", "writeproperty"];
+
+            console.debug("[binding-http]",`HttpServer on port ${this.getPort()} assigns '${href}' to Property '${propertyName}'`);
           }
 
           thing.properties[propertyName].forms.push(form);
-          console.debug("[binding-http]",`HttpServer on port ${this.getPort()} assigns '${href}' to Property '${propertyName}'`);
 
           // if property is observable add an additional form with a observable href
           if (thing.properties[propertyName].observable) {

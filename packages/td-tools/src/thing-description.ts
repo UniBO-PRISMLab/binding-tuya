@@ -283,6 +283,18 @@ export abstract class ThingProperty extends BaseSchema implements  ThingInteract
   uriVariables?: {
     [key: string]: DataSchema;
   }
+
+  //usefull if there are different endpoints for read and write
+  endpoints?:{
+    write : {
+        code : string;
+        method? : string;
+    }
+    read : {
+        code : string;
+        method? : string;
+    }
+  }
   security?: Array<string>;
 
   [key: string]: any;

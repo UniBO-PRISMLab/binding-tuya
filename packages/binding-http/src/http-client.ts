@@ -27,13 +27,14 @@ import * as TD from "../../td-tools/src/td-tools";
 import * as WoT from "wot-typescript-definitions";
 
 import { ProtocolClient, Content } from "@node-wot/core";
-import { HttpForm, HttpHeader, HttpConfig, HTTPMethodName } from "./http";
+import { HttpForm, HttpHeader, HttpConfig, HTTPMethodName, tuyaForm } from "./http";
 import fetch, { Request, RequestInit, Response } from 'node-fetch';
 import { Buffer } from "buffer";
 import OAuthManager from "./oauth-manager";
 import { parse } from "url";
 import { BasicCredential, Credential, BearerCredential, BasicKeyCredential, OAuthCredential, TuyaCredential } from "./credential";
 import { LongPollingSubscription, SSESubscription, InternalSubscription } from "./subscription-protocols";
+import { default as ContentManager } from "../../core/src/content-serdes";
 
 export default class HttpClient implements ProtocolClient {
 
@@ -89,7 +90,7 @@ export default class HttpClient implements ProtocolClient {
     return `[HttpClient]`;
   }
 
-  public async readResource(form: HttpForm): Promise<Content> {
+  public async readResource(form: HttpForm | tuyaForm): Promise<Content> {
     const request = await this.generateFetchRequest(form, "GET")
     console.debug("[binding-http]",`HttpClient (readResource) sending ${request.method} to ${request.url}`);
 
@@ -98,7 +99,18 @@ export default class HttpClient implements ProtocolClient {
     this.checkFetchResponse(result)
     
     const buffer = await result.buffer()
-    
+    //if the target is a tuya api the request returns all the properties so a screening is necessary 
+    if(form.href.includes("openapi.tuya")){
+      let body = JSON.parse(await (buffer.toString()));
+        if(!body.success) throw new Error(body.msg);
+        let response;
+        for(let value in body.result){
+            if(body.result[value].code == (form as tuyaForm).propertyName){
+                response = body.result[value].value;
+            }
+        }
+        return { type: result.headers.get("content-type"), body: Buffer.from(response.toString()) };
+    }
     console.debug("[binding-http]",`HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
     console.debug("[binding-http]",`HttpClient received Content-Type: ${result.headers.get("content-type")}`);
     
@@ -106,6 +118,19 @@ export default class HttpClient implements ProtocolClient {
   }
 
   public async writeResource(form: HttpForm, content: Content): Promise<any> {
+
+    //if the target is a tuya api the content needs to be reformatted 
+    if(form.href.includes("openapi.tuya")){
+      let newBody = {
+        commands:[
+            {
+                code:(form as tuyaForm).propertyName,
+                value: ContentManager.contentToValue(content, null)
+            }
+        ]
+      };
+      content = ContentManager.valueToContent(newBody,null);
+    }
     const request = await this.generateFetchRequest(form, "PUT", {
       headers: [["content-type", content.type]],
       body: content.body
@@ -218,7 +243,7 @@ export default class HttpClient implements ProtocolClient {
       case "nosec":
         break;
       case "TuyaCredential":
-        let scheme: TD.TuyaCredentialSecurityScheme = <TD.TuyaCredentialSecurityScheme>security;  
+        let scheme: TD.TuyaCredentialSecurityScheme = <TD.TuyaCredentialSecurityScheme>credentials;  
         this.credential = new TuyaCredential(scheme);
         break;
       default:

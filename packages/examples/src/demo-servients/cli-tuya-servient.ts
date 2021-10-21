@@ -14,9 +14,8 @@
  ********************************************************************************/
 
 import * as WoT from "wot-typescript-definitions";
-import { Servient, Helpers } from "../../../../packages/core/src/core";
-import { HttpClientFactory, HttpsClientFactory, HttpServer } from "../../../../packages/binding-http/src/http";
-
+import { Servient, Helpers } from "../../../core/src/core";
+import { HttpsClientFactory, HttpClientFactory, HttpServer } from "../../../binding-http/src/http";
 
 //estendo il servient per configurarlo come necessario
 export default class tuyaServient extends Servient{
@@ -63,12 +62,12 @@ export default class tuyaServient extends Servient{
         if (!this.config.servient.clientOnly) {
 
             if (this.config.http !== undefined) {
-                let server = new HttpServer(this.config.http);
-                this.addServer(server as any);
+                let tuyaServer = new HttpServer(this.config.http);
+                this.addServer(tuyaServer as any);
             }
         }
-        this.addClientFactory(new HttpClientFactory());
         this.addClientFactory(new HttpsClientFactory());
+        this.addClientFactory(new HttpClientFactory());
     }
 
     //sovrascritta la start per esporre la thing direttamente senza doverlo fare da un altro script

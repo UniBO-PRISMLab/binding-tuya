@@ -63,3 +63,16 @@ export class HttpHeader {
     public "htv:fieldName": string;
     public "htv:fieldValue": string;
 }
+
+
+//tuya releted types
+
+
+//added the necessary data for tuyaforms 
+export class tuyaForm extends HttpForm {
+    propertyName?:string;
+}
+
+export interface tuyaConfig extends HttpConfig {
+    region:'us'|'eu'|'cn'|'in';
+}
