@@ -2,6 +2,8 @@
 2. Run `npm install` inside this folder
 3. Run `npm run build` inside this folder
 4. Remove the following 3/4 lines in JS file "tuya-client" of folder `dist/examples/servients/tuya-cli/src/` 
+5. place the necessary key and secret in the "config.js" file
+6. Run with node dist/examples/servients/tuya-cli/src/tuya-cli.js -f config.json dist/examples/servients/tuya-cli/src/reader.js
 ```
 Object.defineProperty(exports, "__esModule", { value: true });
 require("wot-typescript-definitions");
