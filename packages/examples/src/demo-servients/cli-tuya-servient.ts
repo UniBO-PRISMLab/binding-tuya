@@ -78,7 +78,6 @@ export default class tuyaServient extends Servient{
                 let TD = {
                     "title":"bff89e2b5a8e1516d6l89a",
                     "description":"an exemple TD of a real tuya smart rgb bulb. The id and region field are needed for connections porpouses",
-                    "id":"bff89e2b5a8e1516d6l89a",
                     "@context":["https://www.w3.org/2019/wot/td/v1"],
                     "securityDefinitions": {
                         "TuyaCredential": {
