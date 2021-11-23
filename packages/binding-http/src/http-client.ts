@@ -103,11 +103,21 @@ export default class HttpClient implements ProtocolClient {
     if(form.href.includes("openapi.tuya")){
       let body = JSON.parse(await (buffer.toString()));
         if(!body.success) throw new Error(body.msg);
-        let response;
-        for(let value in body.result){
+        let response: any;
+        if((form as tuyaForm).propertyName == "all"){
+          let total_response = [];
+          for(let value in body.result){
+            if(body.result[value].code == (form as tuyaForm).propertyName){
+              total_response[body.result[value].code] = body.result[value].value;
+            }  
+          }
+          response = JSON.stringify(total_response);
+        }else{
+          for(let value in body.result){
             if(body.result[value].code == (form as tuyaForm).propertyName){
                 response = body.result[value].value;
             }
+          }
         }
         return { type: result.headers.get("content-type"), body: Buffer.from(response.toString()) };
     }
@@ -121,15 +131,32 @@ export default class HttpClient implements ProtocolClient {
 
     //if the target is a tuya api the content needs to be reformatted 
     if(form.href.includes("openapi.tuya")){
-      let newBody = {
-        commands:[
-            {
-                code:(form as tuyaForm).propertyName,
-                value: ContentManager.contentToValue(content, null)
-            }
-        ]
-      };
-      content = ContentManager.valueToContent(newBody,null);
+      if((form as tuyaForm).propertyName != "all"){
+        let newBody = {
+          commands:[
+              {
+                  code:(form as tuyaForm).propertyName,
+                  value: ContentManager.contentToValue(content, null)
+              }
+          ]
+        };
+        content = ContentManager.valueToContent(newBody,null);
+      }else{
+        let values = ContentManager.contentToValue(content, null);
+        let keys = Object.keys(values);
+        console.log(values, keys)
+        let newBody = {
+          commands:[] as any[]
+        };
+        for(let i = 0; i < keys.length; i++){
+          newBody.commands.push({
+            code:keys[i],
+            value:values[keys[i]]
+          })
+        }
+        console.log(newBody);
+        content = ContentManager.valueToContent(newBody,null);
+      }
     }
     const request = await this.generateFetchRequest(form, "PUT", {
       headers: [["content-type", content.type]],

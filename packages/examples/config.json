@@ -9,7 +9,7 @@
         "baseUri":"https://openapi.tuyaeu.com/v1.0/devices"
     },
     "credentials":{
-        "bff89e2b5a8e1516d6l89a":{
+        "name":{
             "scheme":"TuyaCredential",
             "key":"key",
             "secret":"secret",

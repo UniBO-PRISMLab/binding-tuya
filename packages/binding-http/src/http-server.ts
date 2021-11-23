@@ -267,7 +267,9 @@ export default class HttpServer implements ProtocolServer {
             allWriteOnly = false;
           }
         }
-        if (anyProperties) {
+        let isTuyaThing:boolean = base.includes("openapi.tuya");
+
+        if (anyProperties && !isTuyaThing) {
           let href = base + "/" + this.ALL_DIR + "/" + encodeURIComponent(this.ALL_PROPERTIES);
           let form = new TD.Form(href, type);
           if (allReadOnly) {
@@ -281,9 +283,25 @@ export default class HttpServer implements ProtocolServer {
             thing.forms = [];
           }
           thing.forms.push(form);
-        }
+        }else if(anyProperties && isTuyaThing){
+          if(!allWriteOnly){
+            let readForm:tuyaForm = new TD.Form(base + "/status",type);
+            readForm.op = ["readallproperties"];
+            readForm["htv:methodName"] =  "GET";
+            readForm.propertyName = "all";
 
-        let isTuyaThing:boolean = base.includes("openapi.tuya");
+            if (!thing.forms) {
+              thing.forms = [];
+            }
+            thing.forms.push(readForm);
+          }
+          if(!allReadOnly){
+            let form = new TD.Form(base + "/commands",type);
+            form.op = ["writeallproperties"];
+            (form as HttpForm)["htv:methodName"] = "POST";
+            (form as tuyaForm).propertyName = "all";
+          }
+        }
 
         for (let propertyName in thing.properties) {
           let propertyNamePattern = this.updateInteractionNameWithUriVariablePattern(propertyName, thing.properties[propertyName].uriVariables);
@@ -294,18 +312,22 @@ export default class HttpServer implements ProtocolServer {
 
           //the tuya thing needs fixed endpoints and they're different for read and write 
           if(isTuyaThing){
+            if(!thing.properties[propertyName].writeOnly){
+              form = new TD.Form(base + "/status",type);
+              form.op = ["readproperty"];
+              (form as tuyaForm)["htv:methodName"]=  "GET";
+              (form as tuyaForm).propertyName = propertyName;
 
-            let readForm:tuyaForm = new TD.Form(base + "/status",type);
-            readForm.op = ["readproperty"];
-            readForm["htv:methodName"] =  "GET";
-            readForm.propertyName = propertyName;
-
-            thing.properties[propertyName].forms.push(readForm);
-            
-            form = new TD.Form(base + "/commands",type);
-            form.op = ["writeproperty"];
-            (form as HttpForm)["htv:methodName"] = "POST";
-            (form as tuyaForm).propertyName = propertyName;
+              thing.properties[propertyName].forms.push(form);
+              
+            }
+            if(!thing.properties[propertyName].readOnly){
+              form = new TD.Form(base + "/commands",type);
+              form.op = ["writeproperty"];
+              (form as HttpForm)["htv:methodName"] = "POST";
+              (form as tuyaForm).propertyName = propertyName;
+              thing.properties[propertyName].forms.push(form);
+            }
 
           }else if (thing.properties[propertyName].readOnly) {
             form.op = ["readproperty"];
@@ -314,6 +336,7 @@ export default class HttpServer implements ProtocolServer {
               hform["htv:methodName"] = "GET";
             }
             console.debug("[binding-http]",`HttpServer on port ${this.getPort()} assigns '${href}' to Property '${propertyName}'`);
+            thing.properties[propertyName].forms.push(form);
 
           } else if (thing.properties[propertyName].writeOnly) {
             form.op = ["writeproperty"];
@@ -322,6 +345,7 @@ export default class HttpServer implements ProtocolServer {
               hform["htv:methodName"] = "PUT";
             }
             console.debug("[binding-http]",`HttpServer on port ${this.getPort()} assigns '${href}' to Property '${propertyName}'`);
+            thing.properties[propertyName].forms.push(form);
 
           //added the possibility to have different endpoints for read and write
           }else if(thing.properties[propertyName].endpoints){
@@ -338,16 +362,13 @@ export default class HttpServer implements ProtocolServer {
 
             console.debug("[binding-http]",`HttpServer on port ${this.getPort()} assigns '${href + thing.properties.endpoints.read.code}' to Property '${propertyName}' (read)`);
             console.debug("[binding-http]",`HttpServer on port ${this.getPort()} assigns '${href + thing.properties.endpoints.write.code}' to Property '${propertyName}' (write)`);
-
-
-
+            thing.properties[propertyName].forms.push(form);
           } else {
             form.op = ["readproperty", "writeproperty"];
 
             console.debug("[binding-http]",`HttpServer on port ${this.getPort()} assigns '${href}' to Property '${propertyName}'`);
+            thing.properties[propertyName].forms.push(form);
           }
-
-          thing.properties[propertyName].forms.push(form);
 
           // if property is observable add an additional form with a observable href
           if (thing.properties[propertyName].observable) {
