@@ -263,7 +263,8 @@ export default class HttpServer implements ProtocolServer {
           anyProperties = true;
           if (!thing.properties[propertyName].readOnly) {
             allReadOnly = false;
-          } else if (!thing.properties[propertyName].writeOnly) {
+          } 
+          if (!thing.properties[propertyName].writeOnly) {
             allWriteOnly = false;
           }
         }
@@ -297,9 +298,10 @@ export default class HttpServer implements ProtocolServer {
           }
           if(!allReadOnly){
             let form = new TD.Form(base + "/commands",type);
-            form.op = ["writeallproperties"];
+            form.op = ["writeallproperties", "writemultipleproperties"];
             (form as HttpForm)["htv:methodName"] = "POST";
             (form as tuyaForm).propertyName = "all";
+            thing.forms.push(form);
           }
         }
 
@@ -319,6 +321,7 @@ export default class HttpServer implements ProtocolServer {
               (form as tuyaForm).propertyName = propertyName;
 
               thing.properties[propertyName].forms.push(form);
+              console.debug("[binding-http]",`HttpServer on port ${this.getPort()} assigns '${base + "/status"}' to Property '${propertyName}' (read)`);
               
             }
             if(!thing.properties[propertyName].readOnly){
@@ -327,6 +330,7 @@ export default class HttpServer implements ProtocolServer {
               (form as HttpForm)["htv:methodName"] = "POST";
               (form as tuyaForm).propertyName = propertyName;
               thing.properties[propertyName].forms.push(form);
+              console.debug("[binding-http]",`HttpServer on port ${this.getPort()} assigns '${base + "/commands"}' to Property '${propertyName}' (write)`);
             }
 
           }else if (thing.properties[propertyName].readOnly) {
