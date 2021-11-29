@@ -224,7 +224,7 @@ export default class HttpServer implements ProtocolServer {
         for (let address of Helpers.getAddresses()) {
 
           let isTuya = this.tuyaURL !== undefined;
-          let base: string = isTuya ? this.tuyaURL + "/" + thing.title : this.baseUri.concat("/", encodeURIComponent(urlPath))
+          let base: string = isTuya ? this.tuyaURL + "/" + thing.title : this.scheme + "://" + address + ":" + this.getPort() + "/" + encodeURIComponent(urlPath);
 
           this.addEndpoint(thing, tdTemplate, base, isTuya ? this.scheme + "://" + address + ":" + this.getPort() + "/" + encodeURIComponent(urlPath) : null)
           // media types
