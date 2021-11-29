@@ -263,7 +263,7 @@ export interface TuyaCredentialSecurityScheme extends SecurityScheme{
   scheme: "TuyaCredential";
   key:string;
   secret:string;
-  region:'us'|'eu'|'cn'|'in';
+  baseUri:string;
 }
 
 

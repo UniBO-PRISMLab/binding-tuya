@@ -286,10 +286,10 @@ export default class tuyaServient extends Servient{
                             },
                             "description":"control values of the bulb"
                         }
-                    },
-                    "actions":{
-                
-                    }
+                        },
+                        "actions":{
+                    
+                        }
                 }
                 myWoT.produce(TD)
                     .then((thing) => {

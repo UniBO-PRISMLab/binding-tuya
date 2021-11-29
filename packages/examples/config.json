@@ -5,15 +5,15 @@
     },
     "http": {
         "allowSelfSigned": true,
-        "region":"eu",
-        "baseUri":"https://openapi.tuyaeu.com/v1.0/devices"
+        "tuyaUrl":"https://openapi.tuyaeu.com/v1.0/devices",
+        "baseUri":"httpBaseUri"
     },
     "credentials":{
         "name":{
             "scheme":"TuyaCredential",
             "key":"key",
             "secret":"secret",
-            "region":"region"
+            "baseUri":"https://openapi.tuyaeu.com/v1.0/"
         }
     }
 }

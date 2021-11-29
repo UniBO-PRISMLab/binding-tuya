@@ -141,7 +141,7 @@ export class TuyaCredential extends Credential {
 
     private key:string;
     private secret:string;
-    private region:string;
+    private baseUri:string;
     private token:string;
     private refresh_Token:string;
     private expireTime:Date;
@@ -152,7 +152,7 @@ export class TuyaCredential extends Credential {
         super();
         this.key = scheme.key;
         this.secret = scheme.secret;
-        this.region = scheme.region;
+        this.baseUri = scheme.baseUri;
     }
     async sign(request: Request): Promise<any> {
 
@@ -173,9 +173,9 @@ export class TuyaCredential extends Credential {
             headers:headers,
             method:'GET'
         };
-        let url = `https://openapi.tuya${this.region}.com/v1.0/token?grant_type=1`;
+        let url = `${this.baseUri}/token?grant_type=1`;
         if(refresh){
-            url = `https://openapi.tuya${this.region}.com/v1.0/token/${this.refresh_Token}`;
+            url = `${this.baseUri}/token/${this.refresh_Token}`;
         }
         let data = await (await fetch(url, request)).json();
         if(data.success){
@@ -191,7 +191,8 @@ export class TuyaCredential extends Credential {
 
     private getHeaders(NormalRequest:boolean, headers:any, body:any, url:string, method:string){
         let requestTime = Date.now().toString();
-        const _url = url != null ? url.replace(`https://openapi.tuya${this.region}.com`,'') : null;
+        let replaceUri = this.baseUri.replace("/v1.0","");
+        const _url = url != null ? url.replace(`${replaceUri}`,'') : null;
         const sign = this.requestSign(NormalRequest, requestTime, body, headers, _url, method);
         return {
             t:requestTime,

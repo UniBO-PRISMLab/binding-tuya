@@ -27,7 +27,7 @@ import { AddressInfo } from "net";
 
 import * as TD from "@node-wot/td-tools";
 import Servient, { ProtocolServer, ContentSerdes, Helpers, ExposedThing, ProtocolHelpers } from "@node-wot/core";
-import { HttpConfig, HttpForm, OAuth2ServerConfig, tuyaForm } from "./http";
+import { HttpConfig, HttpForm, OAuth2ServerConfig, tuyaConfig, tuyaForm } from "./http";
 import createValidator, { Validator } from "./oauth-token-validation";
 import { OAuth2SecurityScheme } from "@node-wot/td-tools";
 
@@ -56,7 +56,9 @@ export default class HttpServer implements ProtocolServer {
   private servient: Servient = null;
   private oAuthValidator: Validator;
 
-  constructor(config: HttpConfig = {}) {
+  private tuyaURL:string;
+
+  constructor(config: HttpConfig|tuyaConfig = {}) {
     if (typeof config !== "object") {
       throw new Error(`HttpServer requires config object (got ${typeof config})`);
     }
@@ -79,6 +81,9 @@ export default class HttpServer implements ProtocolServer {
     }
     if (config.baseUri !== undefined) {
       this.baseUri = config.baseUri;
+    }
+    if((config as tuyaConfig).tuyaUrl !== undefined){
+      this.tuyaURL = (config as tuyaConfig).tuyaUrl;
     }
 
     // TLS
@@ -210,15 +215,18 @@ export default class HttpServer implements ProtocolServer {
       this.things.set(urlPath, thing);
 
       if (this.baseUri !== undefined) {
-        let base: string = this.baseUri.includes("openapi.tuya") ? this.baseUri + "/" + thing.title : this.baseUri.concat("/", encodeURIComponent(urlPath))
+        let isTuya = this.tuyaURL !== undefined;
+        let base: string = isTuya ? this.tuyaURL + "/" + thing.title : this.baseUri.concat("/", encodeURIComponent(urlPath))
         console.info("[binding-http]", "HttpServer TD hrefs using baseUri " + this.baseUri)
-        this.addEndpoint(thing, tdTemplate, base )
+        this.addEndpoint(thing, tdTemplate, base, isTuya ? this.baseUri.concat("/", encodeURIComponent(urlPath)): null)
       } else {
         // fill in binding data
         for (let address of Helpers.getAddresses()) {
-          let base: string = this.scheme + "://" + address + ":" + this.getPort() + "/" + encodeURIComponent(urlPath);
 
-          this.addEndpoint(thing, tdTemplate, base)
+          let isTuya = this.tuyaURL !== undefined;
+          let base: string = isTuya ? this.tuyaURL + "/" + thing.title : this.baseUri.concat("/", encodeURIComponent(urlPath))
+
+          this.addEndpoint(thing, tdTemplate, base, isTuya ? this.scheme + "://" + address + ":" + this.getPort() + "/" + encodeURIComponent(urlPath) : null)
           // media types
         } // addresses
 
@@ -253,7 +261,7 @@ export default class HttpServer implements ProtocolServer {
     });
   }
 
-  public addEndpoint(thing: ExposedThing, tdTemplate: WoT.ThingDescription, base: string) {
+  public addEndpoint(thing: ExposedThing, tdTemplate: WoT.ThingDescription, base: string, secondBase?:string) {
       for (let type of ContentSerdes.get().getOfferedMediaTypes()) {
 
         let allReadOnly = true;
@@ -385,6 +393,9 @@ export default class HttpServer implements ProtocolServer {
           }
         }
 
+        if(isTuyaThing && secondBase){
+          base = secondBase;
+        }
         for (let actionName in thing.actions) {
           let actionNamePattern = this.updateInteractionNameWithUriVariablePattern(actionName, thing.actions[actionName].uriVariables);
           let href = base + "/" + this.ACTION_DIR + "/" + actionNamePattern;

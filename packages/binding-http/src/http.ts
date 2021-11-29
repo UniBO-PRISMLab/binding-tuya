@@ -36,6 +36,7 @@ export interface HttpConfig {
     security?: TD.SecurityScheme;
 }
 
+
 export interface OAuth2ServerConfig extends TD.SecurityScheme{
     method: Method;
     /**
@@ -74,5 +75,5 @@ export class tuyaForm extends HttpForm {
 }
 
 export interface tuyaConfig extends HttpConfig {
-    region:'us'|'eu'|'cn'|'in';
+    tuyaUrl:string;
 }
